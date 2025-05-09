@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URI}
+server:
+  port: ${SERVICE_PORT}
+logging:
+  level:
+    org.springframework: INFO

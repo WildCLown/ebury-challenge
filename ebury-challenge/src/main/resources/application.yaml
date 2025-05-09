@@ -1,0 +1,8 @@
+spring:
+  profiles:
+    active: dev
+app:
+  name: EburyFlightManagement
+logging:
+  level:
+    root: INFO
