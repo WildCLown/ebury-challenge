@@ -20,6 +20,9 @@ Vamos separar em pequenas milestones sobre o projeto, e realizar a primeira entr
 
 - Apesar de ser o ultimo item, vamos criar nosso servidor REST, para tal, iremos utilizar Kotlin Spring, como dito ao final, o serviço terá:
   - Registro de novas rotas, persistindo no arquivo CSV | DB
+    - Esta rota irá precisar consultar se os itens existem, e separar em 2 listas, uma que irá inserir diretamente e outra que irá checar se os itens devem ser atualizados, pois não fará sentido ter
+    COG - GUA - 30 e COG - GUA - 40
+    Pois a rota de 30 sempre será utilizada
   - Consulta de rota entre dois pontos
 
 ### Milestone 2:
