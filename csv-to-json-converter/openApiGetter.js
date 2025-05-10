@@ -1,0 +1,182 @@
+function getOpenApison() {
+  return {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Ebury",
+      "description": "",
+      "version": "1.0.0"
+    },
+    "tags": [],
+    "paths": {
+      "/api/flight/cheapest-trip": {
+        "get": {
+          "summary": "Cheapest Trip Route",
+          "deprecated": false,
+          "description": "",
+          "tags": [],
+          "parameters": [
+            {
+              "name": "takeOffAirportCode",
+              "in": "query",
+              "description": "",
+              "required": false,
+              "example": "JFK",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "landingAirportCode",
+              "in": "query",
+              "description": "",
+              "required": false,
+              "example": "LAX",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  },
+                  "examples": {
+                    "1": {
+                      "summary": "Successfully Not found",
+                      "value": {
+                        "airportRoute": [],
+                        "totalPrice": -1
+                      }
+                    },
+                    "2": {
+                      "summary": "Success",
+                      "value": {
+                        "airportRoute": [
+                          "GRU",
+                          "BRC",
+                          "SCL",
+                          "ORL",
+                          "CDG"
+                        ],
+                        "totalPrice": 40
+                      }
+                    }
+                  }
+                }
+              },
+              "headers": {}
+            }
+          },
+          "security": []
+        }
+      },
+      "/api/flight/list": {
+        "post": {
+          "summary": "Batch CSV Information",
+          "deprecated": false,
+          "description": "",
+          "tags": [],
+          "parameters": [],
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "": {
+                      "type": "object",
+                      "properties": {
+                        "takeOffAirportCode": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "takeOffAirportCode",
+                        "01JTSP00TPP51BKN52YXPR5FJA"
+                      ]
+                    }
+                  },
+                  "required": [
+                    ""
+                  ]
+                },
+                "example": [
+                  {
+                    "takeOffAirportCode": "GRU",
+                    "landingAirportCode": "BRC",
+                    "flightCostE2": 10
+                  },
+                  {
+                    "takeOffAirportCode": "BRC",
+                    "landingAirportCode": "SCL",
+                    "flightCostE2": 5
+                  },
+                  {
+                    "takeOffAirportCode": "GRU",
+                    "landingAirportCode": "CDG",
+                    "flightCostE2": 75
+                  },
+                  {
+                    "takeOffAirportCode": "GRU",
+                    "landingAirportCode": "SCL",
+                    "flightCostE2": 20
+                  },
+                  {
+                    "takeOffAirportCode": "GRU",
+                    "landingAirportCode": "ORL",
+                    "flightCostE2": 56
+                  },
+                  {
+                    "takeOffAirportCode": "ORL",
+                    "landingAirportCode": "CDG",
+                    "flightCostE2": 5
+                  },
+                  {
+                    "takeOffAirportCode": "SCL",
+                    "landingAirportCode": "ORL",
+                    "flightCostE2": 20
+                  }
+                ]
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {}
+                  },
+                  "example": [
+                    "681d89bc992588776cfb8afc",
+                    "681d89bd992588776cfb8afd",
+                    "681d89bd992588776cfb8afe",
+                    "681d89bd992588776cfb8aff",
+                    "681d89bd992588776cfb8b00",
+                    "681d89bd992588776cfb8b01",
+                    "681d89bd992588776cfb8b02"
+                  ]
+                }
+              },
+              "headers": {}
+            }
+          },
+          "security": []
+        }
+      }
+    },
+    "components": {
+      "schemas": {},
+      "securitySchemes": {}
+    },
+    "servers": [],
+    "security": []
+  }
+}

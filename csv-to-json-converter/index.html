@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to JSON Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        button {
+            margin-left: 10px;
+        }
+        #converterSection, #redocContainer {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+</head>
+<body>
+    <header>
+        <h1>CSV to JSON Converter And OpenAPI Redoc</h1>
+        <div>
+            <button id="showConverterButton">Conversor</button>
+            <button id="showRedocButton">Redoc</button>
+        </div>
+    </header>
+
+    <section id="converterSection">
+        <form id="converterForm">
+            <label for="fileInput">Selecione um arquivo CSV:</label>
+            <input type="file" id="fileInput" accept=".csv">
+        </form>
+        <textarea id="outputArea" placeholder="O resultado será exibido aqui..."></textarea>
+    </section>
+
+    <div id="redocContainer" style="margin-top: 20px;"></div>
+
+    <script src="csvConverter.js"></script>
+    <script src="openApiGetter.js"></script>
+    <script>
+        const converterSection = document.getElementById('converterSection');
+        const redocContainer = document.getElementById('redocContainer');
+
+        document.getElementById('showConverterButton').addEventListener('click', () => {
+            converterSection.style.display = 'block';
+            redocContainer.style.display = 'none';
+        });
+
+        document.getElementById('showRedocButton').addEventListener('click', () => {
+            converterSection.style.display = 'none';
+            redocContainer.style.display = 'block';
+
+            const openApiSpec = getOpenApison();
+            Redoc.init(openApiSpec, {}, redocContainer);
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const outputArea = document.getElementById('outputArea');
+
+            if (!file) {
+                alert('Por favor, selecione um arquivo CSV.');
+                return;
+            }
+
+            convertCsvToJson(file, outputArea);
+        });
+
+        converterSection.style.display = 'block';
+    </script>
+</body>
+</html>
