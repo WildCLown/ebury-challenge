@@ -21,6 +21,8 @@ class FlightManagementServiceImpl(
     }
 
     override fun upsertFlightRoutes(flightRoutesDto: List<FlightRouteDto>): List<String> {
+//        NOTE: If willing to mantain CSV behavior, that by setting the file, will start using it...
+//        purgeFlightRoutes()
         val flightRoutes =
             flightRoutesDto.map {
                 FlightRoute(

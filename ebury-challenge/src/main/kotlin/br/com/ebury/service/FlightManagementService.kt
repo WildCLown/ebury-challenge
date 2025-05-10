@@ -6,7 +6,9 @@ import br.com.ebury.model.ShortestRouteAndPrice
 interface FlightManagementService {
     fun purgeFlightRoutes()
 
-    fun upsertFlightRoutes(flightRoutesDto: List<FlightRouteDto>): List<String>
+    fun upsertFlightRoutes(
+        flightRoutesDto: List<FlightRouteDto>
+    ): List<String>
 
     fun findCheapestTripAndRoute(
         takeOffAirportCode: String,

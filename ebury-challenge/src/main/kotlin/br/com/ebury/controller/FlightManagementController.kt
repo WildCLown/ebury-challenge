@@ -24,8 +24,6 @@ class FlightManagementController(
     ): List<String> {
         staticValidations.validateFlightRouteList(request)
         try {
-            // NOTE: If willing to mantain CSV behavior, that by setting the file, will start using it...
-            // flightManagementService.purgeFlightRoutes()
             return flightManagementService.upsertFlightRoutes(
                 flightRoutesDto = request,
             )

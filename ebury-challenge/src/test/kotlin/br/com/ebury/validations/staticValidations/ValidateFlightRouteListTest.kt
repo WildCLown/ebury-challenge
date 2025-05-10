@@ -78,6 +78,6 @@ class ValidateFlightRouteListTest {
     }
 
     companion object {
-        private val testAirportCode = "UNIQUE_TEST_VALUE"
+        private const val testAirportCode = "UNIQUE_TEST_VALUE"
     }
 }
