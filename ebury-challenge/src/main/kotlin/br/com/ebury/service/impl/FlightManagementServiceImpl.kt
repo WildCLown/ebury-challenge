@@ -84,7 +84,7 @@ class FlightManagementServiceImpl(
         val checkedFlights = mutableSetOf<String>()
         val pricedAdjacencyList = buildPricedAdjacencyList(allFlights)
 
-        val djkstraQueue = PriorityQueue<ShortestRouteAndPrice>(compareBy { it.totalPrice })
+        val dijkstraQueue = PriorityQueue<ShortestRouteAndPrice>(compareBy { it.totalPrice })
         val initialRoute =
             ShortestRouteAndPrice(
                 totalPrice = 0,
@@ -93,17 +93,17 @@ class FlightManagementServiceImpl(
 
         insertItemsInShortenPath(
             pricedAdjacencyList,
-            djkstraQueue,
+            dijkstraQueue,
             checkedFlights,
             initialRoute,
             landingAirportCode,
         )?.let { return it }
 
-        while (!djkstraQueue.isEmpty()) {
-            val shortestNonFinalRoute = djkstraQueue.poll()
+        while (!dijkstraQueue.isEmpty()) {
+            val shortestNonFinalRoute = dijkstraQueue.poll()
             insertItemsInShortenPath(
                 pricedAdjacencyList,
-                djkstraQueue,
+                dijkstraQueue,
                 checkedFlights,
                 shortestNonFinalRoute,
                 landingAirportCode,
