@@ -31,6 +31,7 @@ tasks.named("build") {
     dependsOn("ktlintFormat")
 }
 
+
 kotlin {
     jvmToolchain(21)
 }

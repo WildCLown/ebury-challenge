@@ -6,13 +6,17 @@ import br.com.ebury.model.ShortestRouteAndPrice
 import br.com.ebury.repository.FlightRouteRepository
 import br.com.ebury.service.FlightManagementService
 import org.bson.types.ObjectId
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.PriorityQueue
+import kotlin.math.log
 
 @Service
 class FlightManagementServiceImpl(
     private val flightRouteRepository: FlightRouteRepository,
 ) : FlightManagementService {
+    private val serviceCache = mutableMapOf<String, ShortestRouteAndPrice>()
+
     override fun purgeFlightRoutes() {
         flightRouteRepository.deleteAll()
     }
@@ -50,6 +54,12 @@ class FlightManagementServiceImpl(
             }
         }
 
+        //TODO: By saving as batch, will know if need to update itens
+        // If I won't update cause I already have smallest route, and won't insert any
+        // Don't need to clear cache
+        serviceCache.clear()
+        // TODO: Save as batch not in loop
+
         return responseIds
     }
 
@@ -57,16 +67,22 @@ class FlightManagementServiceImpl(
         takeOffAirportCode: String,
         landingAirportCode: String,
     ): ShortestRouteAndPrice {
+        //TODO: Not the ideal, should use cache system such as REDIS or other memory cache tool!!
+        logger.info("Service cache size: ${serviceCache.size}")
+        val cachedTrip = serviceCache["$takeOffAirportCode#$landingAirportCode"]
+        if (cachedTrip != null) {
+            logger.info("Returning cached trip: $cachedTrip")
+            return cachedTrip
+        }
         val allFlights = flightRouteRepository.findAll()
         val checkedFlights = mutableSetOf<String>()
         val pricedAdjacencyList = buildPricedAdjacencyList(allFlights)
 
         val djkstraQueue = PriorityQueue<ShortestRouteAndPrice>(compareBy { it.totalPrice })
-        val initialRoute =
-            ShortestRouteAndPrice(
-                totalPrice = 0,
-                airportRoute = listOf(takeOffAirportCode),
-            )
+        val initialRoute = ShortestRouteAndPrice(
+            totalPrice = 0,
+            airportRoute = listOf(takeOffAirportCode),
+        )
 
         insertItemsInShortenPath(
             pricedAdjacencyList,
@@ -78,7 +94,6 @@ class FlightManagementServiceImpl(
 
         while (!djkstraQueue.isEmpty()) {
             val shortestNonFinalRoute = djkstraQueue.poll()
-
             insertItemsInShortenPath(
                 pricedAdjacencyList,
                 djkstraQueue,
@@ -117,13 +132,24 @@ class FlightManagementServiceImpl(
     ): ShortestRouteAndPrice? {
         val currentAirportCode = currentShortestRoute.airportRoute.last()
 
+        if (checkedFlights.contains(currentAirportCode)) {
+            return null
+        }
+        checkedFlights.add(currentAirportCode)
+        val foundPath = "${currentShortestRoute.airportRoute.first()}#${currentAirportCode}"
+        serviceCache[foundPath] = ShortestRouteAndPrice(
+            totalPrice = currentShortestRoute.totalPrice,
+            airportRoute = currentShortestRoute.airportRoute,
+        )
+
+        if (currentAirportCode == targetAirportCode) {
+            return ShortestRouteAndPrice(
+                totalPrice = currentShortestRoute.totalPrice,
+                airportRoute = currentShortestRoute.airportRoute,
+            )
+        }
+
         pricedAdjacencyList[currentAirportCode]?.forEach { (nextAirportCode, price) ->
-            if (nextAirportCode == targetAirportCode) {
-                return ShortestRouteAndPrice(
-                    totalPrice = currentShortestRoute.totalPrice + price,
-                    airportRoute = currentShortestRoute.airportRoute + nextAirportCode,
-                )
-            }
             if (!checkedFlights.contains(nextAirportCode)) {
                 val newRoute =
                     ShortestRouteAndPrice(
@@ -133,7 +159,10 @@ class FlightManagementServiceImpl(
                 djkstraQueue.add(newRoute)
             }
         }
-        checkedFlights.add(currentAirportCode)
         return null
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(FlightManagementServiceImpl::class.java)
     }
 }
