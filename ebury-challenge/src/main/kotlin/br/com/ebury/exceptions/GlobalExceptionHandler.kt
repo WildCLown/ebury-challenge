@@ -38,6 +38,17 @@ class GlobalExceptionHandler {
         return ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST)
     }
 
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ErrorResponseDto> {
+        logger.error("IllegalArgumentException: ${ex.message}", ex)
+        val errorResponse =
+            ErrorResponseDto(
+                message = ex.message ?: "Invalid request",
+                status = HttpStatus.BAD_REQUEST.value(),
+            )
+        return ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST)
+    }
+
     @ExceptionHandler(UnauthorizedException::class)
     fun handleUnauthorizedException(ex: UnauthorizedException): ResponseEntity<ErrorResponseDto> {
         logger.error("UnauthorizedException: ${ex.message}", ex)

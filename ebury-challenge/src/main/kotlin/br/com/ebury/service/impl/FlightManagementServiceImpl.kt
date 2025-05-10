@@ -9,7 +9,6 @@ import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.PriorityQueue
-import kotlin.math.log
 
 @Service
 class FlightManagementServiceImpl(
@@ -32,33 +31,38 @@ class FlightManagementServiceImpl(
                 )
             }
 
+        val saveList = mutableListOf<FlightRoute>()
         val existingFlightRoutes = flightRouteRepository.findExistingRoutes(flightRoutes)
         val existingFlightMap = buildFlightRouteMap(existingFlightRoutes)
-
         val responseIds = mutableListOf<String>()
 
-        // TODO Make transactional
         flightRoutes.forEach {
             val existingRoute = existingFlightMap["${it.takeOffAirportCode}#${it.landingAirportCode}"]
 
             if (existingRoute == null) {
                 val generatedId = ObjectId().toHexString()
                 val flightRoute = it.copy(id = generatedId)
-                flightRouteRepository.save(flightRoute)
+                responseIds.add(generatedId)
+                saveList.add(flightRoute)
             } else {
                 responseIds.add(existingRoute.id!!)
                 if (existingRoute.flightCostE2 > it.flightCostE2) {
                     val flightRoute = existingRoute.copy(flightCostE2 = it.flightCostE2)
-                    flightRouteRepository.save(flightRoute)
+                    saveList.add(flightRoute)
+                } else {
+                    logger.debug(
+                        "Didn't insert new route, as it is more expensive, validate with products the behavior",
+                    )
                 }
             }
         }
 
-        //TODO: By saving as batch, will know if need to update itens
-        // If I won't update cause I already have smallest route, and won't insert any
-        // Don't need to clear cache
-        serviceCache.clear()
-        // TODO: Save as batch not in loop
+        // NOTE: Depending on behaviors, could use transactional
+        // But as we are saving as batch, or everything will be saved or nothing
+        if (saveList.isNotEmpty()) {
+            serviceCache.clear()
+            flightRouteRepository.saveAll(saveList)
+        }
 
         return responseIds
     }
@@ -67,7 +71,7 @@ class FlightManagementServiceImpl(
         takeOffAirportCode: String,
         landingAirportCode: String,
     ): ShortestRouteAndPrice {
-        //TODO: Not the ideal, should use cache system such as REDIS or other memory cache tool!!
+        // TODO: Not the ideal, should use cache system such as REDIS or other memory cache tool!!
         logger.info("Service cache size: ${serviceCache.size}")
         val cachedTrip = serviceCache["$takeOffAirportCode#$landingAirportCode"]
         if (cachedTrip != null) {
@@ -79,10 +83,11 @@ class FlightManagementServiceImpl(
         val pricedAdjacencyList = buildPricedAdjacencyList(allFlights)
 
         val djkstraQueue = PriorityQueue<ShortestRouteAndPrice>(compareBy { it.totalPrice })
-        val initialRoute = ShortestRouteAndPrice(
-            totalPrice = 0,
-            airportRoute = listOf(takeOffAirportCode),
-        )
+        val initialRoute =
+            ShortestRouteAndPrice(
+                totalPrice = 0,
+                airportRoute = listOf(takeOffAirportCode),
+            )
 
         insertItemsInShortenPath(
             pricedAdjacencyList,
@@ -136,11 +141,12 @@ class FlightManagementServiceImpl(
             return null
         }
         checkedFlights.add(currentAirportCode)
-        val foundPath = "${currentShortestRoute.airportRoute.first()}#${currentAirportCode}"
-        serviceCache[foundPath] = ShortestRouteAndPrice(
-            totalPrice = currentShortestRoute.totalPrice,
-            airportRoute = currentShortestRoute.airportRoute,
-        )
+        val foundPath = "${currentShortestRoute.airportRoute.first()}#$currentAirportCode"
+        serviceCache[foundPath] =
+            ShortestRouteAndPrice(
+                totalPrice = currentShortestRoute.totalPrice,
+                airportRoute = currentShortestRoute.airportRoute,
+            )
 
         if (currentAirportCode == targetAirportCode) {
             return ShortestRouteAndPrice(

@@ -3,6 +3,7 @@ package br.com.ebury.controller
 import br.com.ebury.dto.FlightRouteDto
 import br.com.ebury.dto.ShortestRouteAndPriceDto
 import br.com.ebury.service.FlightManagementService
+import br.com.ebury.validations.controller.StaticValidations
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -15,14 +16,15 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/flight")
 class FlightManagementController(
     private val flightManagementService: FlightManagementService,
+    private val staticValidations: StaticValidations,
 ) {
     @PostMapping("/list")
     fun upsertFlightRoutes(
         @RequestBody request: List<FlightRouteDto>,
     ): List<String> {
-        // TODO: Validate request
+        staticValidations.validateFlightRouteList(request)
         try {
-            // If willing to mantain CSV behavior, that by setting the file, will start using it...
+            // NOTE: If willing to mantain CSV behavior, that by setting the file, will start using it...
             // flightManagementService.purgeFlightRoutes()
             return flightManagementService.upsertFlightRoutes(
                 flightRoutesDto = request,
@@ -38,6 +40,12 @@ class FlightManagementController(
         @RequestParam takeOffAirportCode: String,
         @RequestParam landingAirportCode: String,
     ): ShortestRouteAndPriceDto {
+        staticValidations.validateFlightRoute(
+            takeOffAirportCode = takeOffAirportCode,
+            landingAirportCode = landingAirportCode,
+            flightCostE2 = 1,
+        )
+
         try {
             val cheapestTripAndRoute =
                 flightManagementService.findCheapestTripAndRoute(

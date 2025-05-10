@@ -31,6 +31,9 @@ tasks.named("build") {
     dependsOn("ktlintFormat")
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
 
 kotlin {
     jvmToolchain(21)
